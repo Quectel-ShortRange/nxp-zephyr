@@ -1,0 +1,8 @@
+board:
+  name: fcm363x
+  full_name: FCM363X
+  vendor: nxp
+  socs:
+    - name: rw612
+      variants:
+        - name: ns

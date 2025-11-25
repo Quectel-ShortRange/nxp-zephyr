@@ -95,7 +95,8 @@
 #define DAC_CHANNEL_ID		0
 
 #elif defined(CONFIG_BOARD_RD_RW612_BGA) || \
-	defined(CONFIG_BOARD_FRDM_RW612)
+	defined(CONFIG_BOARD_FRDM_RW612)	|| \
+	defined(CONFIG_BOARD_FCM363X)
 
 #define DAC_DEVICE_NODE		DT_NODELABEL(dac0)
 #define DAC_RESOLUTION		10

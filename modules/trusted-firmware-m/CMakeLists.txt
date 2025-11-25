@@ -16,6 +16,10 @@ set(TFM_VALID_PARTITIONS
   TFM_PARTITION_FIRMWARE_UPDATE
   )
 
+if(CONFIG_BOARD_FCM363X)
+  list(APPEND TFM_CMAKE_ARGS -DFLASH_CONFIG_FCM363X:BOOL=ON)
+endif()
+
 if (CONFIG_BUILD_WITH_TFM)
   # PSA API awareness for the Non-Secure application
   target_compile_definitions(app PRIVATE "TFM_PSA_API")
@@ -260,7 +264,7 @@ if (CONFIG_BUILD_WITH_TFM)
     list(APPEND TFM_CMAKE_ARGS -DHAL_ADI_PATH=${ZEPHYR_ADI_MODULE_DIR})
   endif()
 
-  if(CONFIG_BOARD_RD_RW612_BGA OR CONFIG_BOARD_FRDM_RW612)
+  if(CONFIG_BOARD_RD_RW612_BGA OR CONFIG_BOARD_FRDM_RW612 OR CONFIG_BOARD_FCM363X)
     # Supply path to NXP HAL sources used for TF-M build
     list(APPEND TFM_CMAKE_ARGS -DZEPHYR_HAL_NXP_MODULE_DIR=${ZEPHYR_HAL_NXP_MODULE_DIR})
     # Supply path to NXP HAL sources used for TF-M build
@@ -421,7 +425,7 @@ if (CONFIG_BUILD_WITH_TFM)
   if(CONFIG_SOC_FAMILY_NORDIC_NRF)
     zephyr_library_sources_ifdef(CONFIG_TFM_PARTITION_PLATFORM               ${TFM_INTERFACE_SOURCE_DIR}/tfm_ioctl_core_ns_api.c)
   endif()
-  if(CONFIG_BOARD_RD_RW612_BGA OR CONFIG_BOARD_FRDM_RW612)
+  if(CONFIG_BOARD_RD_RW612_BGA OR CONFIG_BOARD_FRDM_RW612 OR CONFIG_BOARD_FCM363X)
     zephyr_library_sources_ifdef(CONFIG_TFM_PARTITION_PLATFORM               ${TFM_INTERFACE_SOURCE_DIR}/tfm_lds_api.c)
   endif()
   target_include_directories(tfm_api PUBLIC

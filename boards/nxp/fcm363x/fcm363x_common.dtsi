@@ -1,0 +1,260 @@
+/*
+ * Copyright 2024-2025 NXP
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+#include "fcm363x-pinctrl.dtsi"
+#include <zephyr/dt-bindings/input/input-event-codes.h>
+
+/ {
+	model = "nxp,fcm363x";
+
+	aliases {
+		watchdog0 = &wwdt;
+		usart-0 = &flexcomm3;
+		i2c-0 = &flexcomm2;
+		pwm-0 = &sctimer;
+		ambient-temp0 = &p3t1755;
+	};
+
+	chosen {
+		zephyr,sram = &sram_data;
+		zephyr,flash = &xm25qh64d;
+		zephyr,console = &flexcomm3;
+		zephyr,shell-uart = &flexcomm3;
+		zephyr,flash-controller = &xm25qh64d;
+		zephyr,code-partition = &slot0_partition;
+		zephyr,uart-mcumgr = &flexcomm3;
+	};
+
+};
+
+&flexcomm3 {
+	compatible = "nxp,lpc-usart";
+	status = "okay";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_flexcomm3_usart>;
+	pinctrl-names = "default";
+	wakeup-source;
+};
+
+&flexcomm0 {
+	compatible = "nxp,lpc-usart";
+	status = "disabled";
+	current-speed = <115200>;
+	pinctrl-0 = <&pinmux_flexcomm0_usart>;
+	pinctrl-names = "default";
+};
+
+&hsgpio0 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_hsgpio0>;
+	pinctrl-names = "default";
+};
+
+&hsgpio1 {
+	status = "okay";
+	pinctrl-0 = <&pinmux_hsgpio1>;
+	pinctrl-names = "default";
+};
+
+&flexspi {
+	status = "okay";
+	ahb-bufferable;
+	ahb-prefetch;
+	ahb-cacheable;
+	ahb-read-addr-opt;
+	ahb-boundary = "1024";
+	rx-clock-source = <1>;
+	rx-clock-source-b = <1>;
+	/* xmc */
+	xm25qh64d: xm25qh64d@0 {
+		compatible = "nxp,imx-flexspi-nor";
+		reg = <0>;
+		size = <DT_SIZE_M(8)>;
+		status = "okay";
+		jedec-id = [20 40 17];
+		erase-block-size = <4096>;
+		write-block-size = <1>;
+		spi-max-frequency = <104000000>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			/*
+			 * Partition sizes must be aligned
+			 * to the flash memory sector size of 4KB.
+			 */
+			boot_partition: partition@0 {
+				label = "mcuboot";
+				reg = <0x00000000 DT_SIZE_K(128)>;
+			};
+			slot0_partition: partition@20000 {
+				label = "image-0";
+				reg = <0x00020000 DT_SIZE_M(3)>;
+			};
+			slot1_partition: partition@320000 {
+				label = "image-1";
+				reg = <0x00320000 DT_SIZE_M(3)>;
+			};
+			storage_partition: partition@620000 {
+				label = "storage";
+				reg = <0x00620000 (DT_SIZE_M(2) - DT_SIZE_K(128))>;
+			};
+		};
+	};
+
+};
+
+&hci {
+	status = "okay";
+	wakeup-source;
+};
+
+&enet_mac {
+	status = "okay";
+	pinctrl-0 = <&pinmux_enet>;
+	pinctrl-names = "default";
+	phy-handle = <&phy>;
+	nxp,unique-mac;
+	phy-connection-type = "rmii";
+};
+
+&enet_mdio {
+	status = "okay";
+	pinctrl-0 = <&pinmux_mdio>;
+	pinctrl-names = "default";
+	phy: phy@2 {
+		compatible = "microchip,ksz8081";
+		reg = <2>;
+		status = "okay";
+		reset-gpios = <&hsgpio1 23 GPIO_ACTIVE_HIGH>;
+		int-gpios = <&hsgpio0 21 GPIO_ACTIVE_HIGH>;
+		microchip,interface-type = "rmii";
+	};
+};
+
+&wwdt {
+	status = "okay";
+};
+
+&dma0 {
+	status = "okay";
+};
+
+&wwdt {
+	status = "okay";
+};
+
+&dma0 {
+	status = "okay";
+};
+
+&mrt0_channel0 {
+	status = "okay";
+};
+
+&ctimer0 {
+	status = "okay";
+};
+
+/* RTC is the wakeup source for PM modes 3, 4 */
+&rtc_highres {
+	status = "okay";
+	wakeup-source;
+};
+
+&pmu {
+	reset-causes-en = <PMU_RESET_CM33_LOCKUP>,
+			  <PMU_RESET_ITRC>,
+			  <PMU_RESET_AP_RESET>;
+};
+
+/* OS Timer is the wakeup source for PM mode 2 */
+&os_timer {
+	status = "okay";
+	wakeup-source;
+	deep-sleep-counter = <&rtc_highres>;
+};
+
+&systick {
+	status = "disabled";
+};
+
+&adc0 {
+	status = "okay";
+};
+
+&dac0 {
+	status = "okay";
+};
+
+&sctimer {
+	status = "okay";
+	pinctrl-0 = <&pinmux_pwm0>;
+	pinctrl-names = "default";
+};
+
+/* RTC is the wakeup source for PM modes 3,4 */
+&rtc_highres {
+	status = "okay";
+	wakeup-source;
+};
+
+&nbu {
+	status = "okay";
+	wakeup-source;
+};
+
+&imu {
+	status = "okay";
+	wakeup-source;
+};
+
+zephyr_udc0: &usb_otg {
+	status = "okay";
+};
+
+/*
+ * the default resistors on the board breaks out the MOSI/MISO
+ * pins to the nets labelled "UART" which go to J1 2 and 4,
+ * but we are using it for spi mosi and miso here.
+ * SCK is on J2 6 as labelled.
+ */
+&flexcomm1 {
+	compatible = "nxp,lpc-spi";
+	pinctrl-0 = <&pinmux_flexcomm1_spi>;
+	pinctrl-names = "default";
+	status = "okay";
+	#address-cells = <1>;
+	#size-cells = <0>;
+};
+
+arduino_i2c: &flexcomm2 {
+	compatible = "nxp,lpc-i2c";
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_FAST>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-0 = <&pinmux_flexcomm2_i2c>;
+	pinctrl-names = "default";
+
+	p3t1755: p3t1755@48 {
+		compatible = "nxp,p3t1755";
+		reg = <0x48>;
+		status = "okay";
+	};
+};
+
+zephyr_mipi_dbi_spi: &lcdic {
+	status = "okay";
+	pinctrl-0 = <&pinmux_lcdic>;
+	pinctrl-names = "default";
+};
+
+nxp_pmod_touch_panel_i2c: &arduino_i2c {
+	status = "okay";
+};
