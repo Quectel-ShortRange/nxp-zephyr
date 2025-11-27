@@ -19,9 +19,9 @@ LOG_MODULE_REGISTER(MAIN);
 	 NET_EVENT_WIFI_AP_STA_CONNECTED | NET_EVENT_WIFI_AP_STA_DISCONNECTED)
 
 /* AP Mode Configuration */
-#define WIFI_AP_SSID       "ESP32-AP"
+#define WIFI_AP_SSID       CONFIG_BOARD"-AP"
 #define WIFI_AP_PSK        ""
-#define WIFI_AP_IP_ADDRESS "192.168.4.1"
+#define WIFI_AP_IP_ADDRESS "192.168.10.1"
 #define WIFI_AP_NETMASK    "255.255.255.0"
 
 /* STA Mode Configuration */
@@ -124,6 +124,7 @@ static int enable_ap_mode(void)
 	ap_config.psk_length = strlen(WIFI_AP_PSK);
 	ap_config.channel = WIFI_CHANNEL_ANY;
 	ap_config.band = WIFI_FREQ_BAND_2_4_GHZ;
+	ap_config.bandwidth = WIFI_FREQ_BANDWIDTH_20MHZ;
 
 	if (strlen(WIFI_AP_PSK) == 0) {
 		ap_config.security = WIFI_SECURITY_TYPE_NONE;
@@ -133,6 +134,9 @@ static int enable_ap_mode(void)
 	}
 
 	enable_dhcpv4_server();
+
+	LOG_INF("AP SSID: %s\n", ap_config.ssid);
+	LOG_INF("AP PSK: %s\n", ap_config.psk);
 
 	int ret = net_mgmt(NET_REQUEST_WIFI_AP_ENABLE, ap_iface, &ap_config,
 			   sizeof(struct wifi_connect_req_params));
@@ -159,6 +163,7 @@ static int connect_to_wifi(void)
 	sta_config.band = WIFI_FREQ_BAND_2_4_GHZ;
 
 	LOG_INF("Connecting to SSID: %s\n", sta_config.ssid);
+	LOG_INF("Connecting to PSK: %s\n", sta_config.psk);
 
 	int ret = net_mgmt(NET_REQUEST_WIFI_CONNECT, sta_iface, &sta_config,
 			   sizeof(struct wifi_connect_req_params));
